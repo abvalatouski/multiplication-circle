@@ -5,13 +5,13 @@ import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort         (ViewPort)
 import Graphics.Gloss.Interface.Environment (getScreenSize)
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 toCartesian :: Point -> Point
 toCartesian (ρ, φ) = (ρ * cos φ, ρ * sin φ)
 
-createCircle :: Float -> Int -> [Point]
-createCircle ρ n = map toCartesian [(ρ, φ) | φ <- [0, dφ .. 2 * pi - dφ]]
+mkCircle :: Float -> Int -> [Point]
+mkCircle ρ n = map toCartesian [(ρ, φ) | φ <- [0, dφ .. 2 * pi - dφ]]
   where
     dφ = 2 * pi / fromIntegral n
 
@@ -20,8 +20,8 @@ data Line = Between
     , end   :: Point
     }
 
-createLines :: Float -> [Point] -> [Line]
-createLines factor points = map connect paths
+mkLines :: Float -> [Point] -> [Line]
+mkLines factor points = map connect paths
   where
     count   = fromIntegral $ length points
     starts  = [0 .. count - 1]
@@ -32,7 +32,7 @@ createLines factor points = map connect paths
         , end   = points !! floor end
         }
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 data Model = Model
     { base   :: Int
@@ -49,7 +49,7 @@ model = Model
     , delta  = 0.01
     }
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 class Renderable a where
     render :: a -> Picture
@@ -58,21 +58,17 @@ instance Renderable Line where
     render (Between start end) = Line [start, end]
 
 instance Renderable Model where
-    render (Model base radius factor _delta) =
-        Color black $ Pictures [ring, lines]
+    render (Model base radius factor _delta) = Color black $ ring <> lines
       where
         ring  = Circle radius
-        lines = Pictures
-            . map render
-            . createLines factor
-            $ createCircle radius base
+        lines = foldMap render $ mkLines factor $ mkCircle radius base
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 update :: ViewPort -> Float -> Model -> Model
 update _ _ model = model { factor = factor model + delta model }
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 main :: IO ()
 main = do
