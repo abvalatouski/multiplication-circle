@@ -1,4 +1,6 @@
 cradle:
   stack:
-    - path: "./src/Main.hs"
+    - path: "./app/Main.hs"
       component: "multiplication-circle:exe:multiplication-circle"
+    - path: "./src"
+      component: "multiplication-circle:lib"
